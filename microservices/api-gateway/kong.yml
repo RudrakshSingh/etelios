@@ -1,0 +1,522 @@
+_format_version: "3.0"
+
+services:
+  - name: auth-service
+    url: http://auth-service:3001
+    routes:
+      - name: auth-service-routes
+        paths:
+          - /api/auth/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: hr-service
+    url: http://hr-service:3002
+    routes:
+      - name: hr-service-routes
+        paths:
+          - /api/hr/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: attendance-service
+    url: http://attendance-service:3003
+    routes:
+      - name: attendance-service-routes
+        paths:
+          - /api/attendance/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: payroll-service
+    url: http://payroll-service:3004
+    routes:
+      - name: payroll-service-routes
+        paths:
+          - /api/payroll/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: crm-service
+    url: http://crm-service:3005
+    routes:
+      - name: crm-service-routes
+        paths:
+          - /api/crm/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: inventory-service
+    url: http://inventory-service:3006
+    routes:
+      - name: inventory-service-routes
+        paths:
+          - /api/inventory/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: sales-service
+    url: http://sales-service:3007
+    routes:
+      - name: sales-service-routes
+        paths:
+          - /api/sales/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: purchase-service
+    url: http://purchase-service:3008
+    routes:
+      - name: purchase-service-routes
+        paths:
+          - /api/purchase/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: financial-service
+    url: http://financial-service:3009
+    routes:
+      - name: financial-service-routes
+        paths:
+          - /api/financial/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: document-service
+    url: http://document-service:3010
+    routes:
+      - name: document-service-routes
+        paths:
+          - /api/document/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: service-management
+    url: http://service-management:3011
+    routes:
+      - name: service-management-routes
+        paths:
+          - /api/service/management
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: cpp-service
+    url: http://cpp-service:3012
+    routes:
+      - name: cpp-service-routes
+        paths:
+          - /api/cpp/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: prescription-service
+    url: http://prescription-service:3013
+    routes:
+      - name: prescription-service-routes
+        paths:
+          - /api/prescription/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: analytics-service
+    url: http://analytics-service:3014
+    routes:
+      - name: analytics-service-routes
+        paths:
+          - /api/analytics/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: notification-service
+    url: http://notification-service:3015
+    routes:
+      - name: notification-service-routes
+        paths:
+          - /api/notification/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+  - name: monitoring-service
+    url: http://monitoring-service:3016
+    routes:
+      - name: monitoring-service-routes
+        paths:
+          - /api/monitoring/service
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+          - name: cors
+            config:
+              origins:
+                - http://localhost:3000
+                - https://yourdomain.com
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              headers:
+                - Accept
+                - Authorization
+                - Content-Type
+                - X-Requested-With
+
+plugins:
+  - name: jwt
+    config:
+      secret_is_base64: false
+      key_claim_name: iss
+      algorithm: HS256

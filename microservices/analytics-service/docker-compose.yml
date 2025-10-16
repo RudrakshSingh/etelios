@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  analytics-service:
+    build: .
+    ports:
+      - "3014:3014"
+    environment:
+      - NODE_ENV=development
+      - PORT=3014
+      - SERVICE_NAME=analytics-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_analytics_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - analytics-service_mongo_data:/data/db
+    networks:
+      - etelios-network
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - analytics-service_redis_data:/data
+    networks:
+      - etelios-network
+
+volumes:
+  analytics-service_mongo_data:
+  analytics-service_redis_data:
+
+networks:
+  etelios-network:
+    external: true

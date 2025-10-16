@@ -1,0 +1,1156 @@
+openapi: 3.0.3
+info:
+  title: HRMS Backend API
+  description: Production-grade, scalable HRMS backend for retail and field sales
+  version: 1.0.0
+  contact:
+    name: Rudraksh Singh
+    email: support@hrms.com
+  license:
+    name: ISC
+    url: https://opensource.org/licenses/ISC
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.hrms.com/api
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the API
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: number
+                    example: 3600
+                  environment:
+                    type: string
+                    example: development
+                  message:
+                    type: string
+                    example: HRMS Backend is running smoothly!
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with the specified role
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employeeId
+                - firstName
+                - lastName
+                - email
+                - password
+                - roleName
+              properties:
+                employeeId:
+                  type: string
+                  example: EMP001
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@company.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: password123
+                roleName:
+                  type: string
+                  enum: [SuperAdmin, Admin, HR, Manager, Employee]
+                  example: Employee
+                phone:
+                  type: string
+                  example: +1234567890
+                jobTitle:
+                  type: string
+                  example: Sales Representative
+                department:
+                  type: string
+                  example: Sales
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User registered successfully
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticates a user and returns access and refresh tokens
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@company.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Login successful
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      accessToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refreshToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Generates a new access token using a valid refresh token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Token refreshed successfully
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      summary: User logout
+      description: Logs out a user and invalidates their refresh token
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logout successful
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /attendance/clock-in:
+    post:
+      summary: Clock in
+      description: Records employee clock-in with location and selfie
+      tags:
+        - Attendance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - latitude
+                - longitude
+                - selfie
+              properties:
+                latitude:
+                  type: number
+                  format: float
+                  example: 40.7128
+                longitude:
+                  type: number
+                  format: float
+                  example: -74.0060
+                selfie:
+                  type: string
+                  format: binary
+                notes:
+                  type: string
+                  example: Clocking in for the day
+      responses:
+        '201':
+          description: Clock-in recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Clock-in recorded successfully
+                  data:
+                    $ref: '#/components/schemas/Attendance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /attendance/clock-out:
+    post:
+      summary: Clock out
+      description: Records employee clock-out with location and selfie
+      tags:
+        - Attendance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - latitude
+                - longitude
+                - selfie
+              properties:
+                latitude:
+                  type: number
+                  format: float
+                  example: 40.7128
+                longitude:
+                  type: number
+                  format: float
+                  example: -74.0060
+                selfie:
+                  type: string
+                  format: binary
+                notes:
+                  type: string
+                  example: End of work day
+      responses:
+        '200':
+          description: Clock-out recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Clock-out recorded successfully
+                  data:
+                    $ref: '#/components/schemas/Attendance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /attendance/history:
+    get:
+      summary: Get attendance history
+      description: Retrieves attendance history for the authenticated user
+      tags:
+        - Attendance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for the attendance history
+          required: false
+          schema:
+            type: string
+            format: date
+            example: 2024-01-01
+        - name: endDate
+          in: query
+          description: End date for the attendance history
+          required: false
+          schema:
+            type: string
+            format: date
+            example: 2024-01-31
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of records per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Attendance history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Attendance history retrieved successfully
+                  data:
+                    type: object
+                    properties:
+                      attendances:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Attendance'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /hr/employees:
+    get:
+      summary: Get all employees
+      description: Retrieves a list of all employees (HR/Admin only)
+      tags:
+        - HR Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of records per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Filter by employee status
+          required: false
+          schema:
+            type: string
+            enum: [active, on_leave, terminated, pending]
+        - name: store
+          in: query
+          description: Filter by store ID
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Employees retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Employees retrieved successfully
+                  data:
+                    type: object
+                    properties:
+                      employees:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /hr/employees:
+    post:
+      summary: Create new employee
+      description: Creates a new employee (HR/Admin only)
+      tags:
+        - HR Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employeeId
+                - firstName
+                - lastName
+                - email
+                - password
+                - roleName
+              properties:
+                employeeId:
+                  type: string
+                  example: EMP002
+                firstName:
+                  type: string
+                  example: Jane
+                lastName:
+                  type: string
+                  example: Smith
+                email:
+                  type: string
+                  format: email
+                  example: jane.smith@company.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: password123
+                roleName:
+                  type: string
+                  enum: [SuperAdmin, Admin, HR, Manager, Employee]
+                  example: Employee
+                phone:
+                  type: string
+                  example: +1234567890
+                jobTitle:
+                  type: string
+                  example: Sales Manager
+                department:
+                  type: string
+                  example: Sales
+                storeId:
+                  type: string
+                  example: 507f1f77bcf86cd799439011
+      responses:
+        '201':
+          description: Employee created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Employee created successfully
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /assets:
+    get:
+      summary: Get all assets
+      description: Retrieves a list of all assets
+      tags:
+        - Asset Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of records per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Filter by asset status
+          required: false
+          schema:
+            type: string
+            enum: [assigned, available, maintenance, retired]
+        - name: assignedTo
+          in: query
+          description: Filter by assigned employee ID
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assets retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Assets retrieved successfully
+                  data:
+                    type: object
+                    properties:
+                      assets:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Asset'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /assets:
+    post:
+      summary: Create new asset
+      description: Creates a new asset (HR/Admin only)
+      tags:
+        - Asset Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - assetId
+              properties:
+                name:
+                  type: string
+                  example: Laptop Dell XPS 13
+                assetId:
+                  type: string
+                  example: LAP001
+                description:
+                  type: string
+                  example: High-performance laptop for sales team
+                category:
+                  type: string
+                  example: Electronics
+                condition:
+                  type: string
+                  example: New
+                purchaseDate:
+                  type: string
+                  format: date
+                  example: 2024-01-15
+                purchasePrice:
+                  type: number
+                  format: float
+                  example: 1299.99
+                serialNumber:
+                  type: string
+                  example: SN123456789
+      responses:
+        '201':
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Asset created successfully
+                  data:
+                    $ref: '#/components/schemas/Asset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /reports/attendance:
+    get:
+      summary: Generate attendance report
+      description: Generates attendance report for specified date range
+      tags:
+        - Reports
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for the report
+          required: true
+          schema:
+            type: string
+            format: date
+            example: 2024-01-01
+        - name: endDate
+          in: query
+          description: End date for the report
+          required: true
+          schema:
+            type: string
+            format: date
+            example: 2024-01-31
+        - name: storeId
+          in: query
+          description: Filter by store ID
+          required: false
+          schema:
+            type: string
+        - name: format
+          in: query
+          description: Report format
+          required: false
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+            default: json
+      responses:
+        '200':
+          description: Attendance report generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Attendance report generated successfully
+                  data:
+                    type: object
+                    properties:
+                      report:
+                        type: object
+                        properties:
+                          summary:
+                            type: object
+                            properties:
+                              totalEmployees:
+                                type: integer
+                                example: 50
+                              totalWorkingDays:
+                                type: integer
+                                example: 22
+                              averageAttendance:
+                                type: number
+                                format: float
+                                example: 95.5
+                          details:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                employeeId:
+                                  type: string
+                                  example: EMP001
+                                employeeName:
+                                  type: string
+                                  example: John Doe
+                                totalDays:
+                                  type: integer
+                                  example: 22
+                                presentDays:
+                                  type: integer
+                                  example: 21
+                                absentDays:
+                                  type: integer
+                                  example: 1
+                                attendancePercentage:
+                                  type: number
+                                  format: float
+                                  example: 95.45
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        employeeId:
+          type: string
+          example: EMP001
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        email:
+          type: string
+          format: email
+          example: john.doe@company.com
+        phone:
+          type: string
+          example: +1234567890
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: 123 Main St
+            city:
+              type: string
+              example: New York
+            state:
+              type: string
+              example: NY
+            zip:
+              type: string
+              example: 10001
+            country:
+              type: string
+              example: USA
+        dateOfBirth:
+          type: string
+          format: date
+          example: 1990-01-15
+        hireDate:
+          type: string
+          format: date
+          example: 2024-01-01
+        jobTitle:
+          type: string
+          example: Sales Representative
+        department:
+          type: string
+          example: Sales
+        role:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 507f1f77bcf86cd799439012
+            name:
+              type: string
+              example: Employee
+            permissions:
+              type: array
+              items:
+                type: string
+              example: ["attendance:record", "attendance:read"]
+        store:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 507f1f77bcf86cd799439013
+            name:
+              type: string
+              example: Downtown Store
+        status:
+          type: string
+          enum: [active, on_leave, terminated, pending]
+          example: active
+        profilePicture:
+          type: object
+          properties:
+            url:
+              type: string
+              example: https://res.cloudinary.com/example/image/upload/v1234567890/profile.jpg
+            public_id:
+              type: string
+              example: profile_1234567890
+        lastLogin:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+
+    Attendance:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439014
+        employee:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        store:
+          type: string
+          example: 507f1f77bcf86cd799439013
+        clockIn:
+          type: object
+          properties:
+            time:
+              type: string
+              format: date-time
+              example: 2024-01-15T09:00:00Z
+            location:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: Point
+                coordinates:
+                  type: array
+                  items:
+                    type: number
+                  example: [-74.0060, 40.7128]
+            selfie:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: https://res.cloudinary.com/example/image/upload/v1234567890/selfie.jpg
+                public_id:
+                  type: string
+                  example: selfie_1234567890
+        clockOut:
+          type: object
+          properties:
+            time:
+              type: string
+              format: date-time
+              example: 2024-01-15T17:00:00Z
+            location:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: Point
+                coordinates:
+                  type: array
+                  items:
+                    type: number
+                  example: [-74.0060, 40.7128]
+            selfie:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: https://res.cloudinary.com/example/image/upload/v1234567890/selfie_out.jpg
+                public_id:
+                  type: string
+                  example: selfie_out_1234567890
+        status:
+          type: string
+          enum: [present, absent, on_leave, holiday]
+          example: present
+        isGeofenceValid:
+          type: boolean
+          example: true
+        notes:
+          type: string
+          example: Regular work day
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-15T09:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-15T17:00:00Z
+
+    Asset:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439015
+        name:
+          type: string
+          example: Laptop Dell XPS 13
+        assetId:
+          type: string
+          example: LAP001
+        description:
+          type: string
+          example: High-performance laptop for sales team
+        category:
+          type: string
+          example: Electronics
+        assignedTo:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        assignedDate:
+          type: string
+          format: date
+          example: 2024-01-15
+        returnDate:
+          type: string
+          format: date
+          example: null
+        status:
+          type: string
+          enum: [assigned, available, maintenance, retired]
+          example: assigned
+        condition:
+          type: string
+          example: New
+        purchaseDate:
+          type: string
+          format: date
+          example: 2024-01-15
+        purchasePrice:
+          type: number
+          format: float
+          example: 1299.99
+        serialNumber:
+          type: string
+          example: SN123456789
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-15T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-15T00:00:00Z
+
+    Pagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 10
+        totalItems:
+          type: integer
+          example: 100
+        itemsPerPage:
+          type: integer
+          example: 10
+        hasNextPage:
+          type: boolean
+          example: true
+        hasPrevPage:
+          type: boolean
+          example: false
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email: ["Email is required", "Email must be valid"]
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            message: Validation failed
+            errors:
+              email: ["Email is required"]
+              password: ["Password must be at least 8 characters"]
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            message: Not authorized, no token
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            message: Not authorized. Insufficient permissions
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            message: User with this email already exists
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            message: Internal Server Error
+
+tags:
+  - name: System
+    description: System health and status endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Attendance
+    description: Employee attendance management
+  - name: HR Management
+    description: Human resources management operations
+  - name: Asset Management
+    description: Company asset tracking and management
+  - name: Reports
+    description: Report generation and analytics

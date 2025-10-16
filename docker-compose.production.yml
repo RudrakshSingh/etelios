@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Etelios ERP Backend Application
+  etelios-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: etelios-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Database configuration (will be overridden by Azure App Service settings)
+      MONGO_URI: ${MONGO_URI}
+      REDIS_URL: ${REDIS_URL}
+      # Azure Storage
+      AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
+      # Application Insights
+      APPINSIGHTS_INSTRUMENTATIONKEY: ${APPINSIGHTS_INSTRUMENTATIONKEY}
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      # CORS
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      # Rate limiting
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      # Health check
+      HEALTH_CHECK_ENABLED: true
+      HEALTH_CHECK_INTERVAL: 30000
+      # Monitoring
+      MONITORING_ENABLED: true
+      METRICS_ENABLED: true
+      # Security headers
+      HELMET_ENABLED: true
+      HELMET_HSTS: true
+      HELMET_HSTS_MAX_AGE: 31536000
+      # File upload
+      MAX_FILE_SIZE: 10485760
+      UPLOAD_PATH: /tmp/uploads
+      # Worker configuration
+      WORKER_ENABLED: true
+      WORKER_CONCURRENCY: 5
+      # Notifications
+      NOTIFICATIONS_ENABLED: true
+      NOTIFICATION_EMAIL_ENABLED: true
+      NOTIFICATION_SMS_ENABLED: true
+      # Feature flags
+      FEATURE_ANALYTICS: true
+      FEATURE_REPORTING: true
+      FEATURE_NOTIFICATIONS: true
+      FEATURE_MONITORING: true
+      FEATURE_LOGGING: true
+      FEATURE_CACHING: true
+      FEATURE_RATE_LIMITING: true
+      FEATURE_SECURITY: true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/app/logs
+      - ./storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - etelios-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+networks:
+  etelios-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Note: This docker-compose file is for local testing only
+# For Azure deployment, use the Azure App Service with container deployment
+# The database and Redis will be provided by Azure Cosmos DB and Azure Cache for Redis

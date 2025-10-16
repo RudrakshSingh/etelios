@@ -1,0 +1,362 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    image: kong:3.4-alpine
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    volumes:
+      - ./api-gateway/kong.yml:/kong/kong.yml
+    networks:
+      - etelios-network
+
+  # Authentication & User Management
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SERVICE_NAME=auth-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_auth_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # HR Management & Employee Data
+  hr-service:
+    build: ./hr-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - SERVICE_NAME=hr-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_hr_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Attendance & Geofencing
+  attendance-service:
+    build: ./attendance-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - SERVICE_NAME=attendance-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_attendance_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Payroll & Salary Management
+  payroll-service:
+    build: ./payroll-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - SERVICE_NAME=payroll-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_payroll_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Customer Management & Engagement
+  crm-service:
+    build: ./crm-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+      - SERVICE_NAME=crm-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_crm_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # ERP & Inventory Management
+  inventory-service:
+    build: ./inventory-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=production
+      - PORT=3006
+      - SERVICE_NAME=inventory-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_inventory_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Sales & Order Management
+  sales-service:
+    build: ./sales-service
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=production
+      - PORT=3007
+      - SERVICE_NAME=sales-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_sales_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Purchase & Vendor Management
+  purchase-service:
+    build: ./purchase-service
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=production
+      - PORT=3008
+      - SERVICE_NAME=purchase-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_purchase_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Financial Management & Accounting
+  financial-service:
+    build: ./financial-service
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=production
+      - PORT=3009
+      - SERVICE_NAME=financial-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_financial_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Document & E-signature Management
+  document-service:
+    build: ./document-service
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=production
+      - PORT=3010
+      - SERVICE_NAME=document-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_document_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Service & SLA Management
+  service-management:
+    build: ./service-management
+    ports:
+      - "3011:3011"
+    environment:
+      - NODE_ENV=production
+      - PORT=3011
+      - SERVICE_NAME=service-management
+      - MONGO_URI=mongodb://mongo:27017/etelios_service_management
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Customer Protection Plan
+  cpp-service:
+    build: ./cpp-service
+    ports:
+      - "3012:3012"
+    environment:
+      - NODE_ENV=production
+      - PORT=3012
+      - SERVICE_NAME=cpp-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_cpp_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Prescription Management
+  prescription-service:
+    build: ./prescription-service
+    ports:
+      - "3013:3013"
+    environment:
+      - NODE_ENV=production
+      - PORT=3013
+      - SERVICE_NAME=prescription-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_prescription_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Analytics & Reporting
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "3014:3014"
+    environment:
+      - NODE_ENV=production
+      - PORT=3014
+      - SERVICE_NAME=analytics-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_analytics_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Notifications & Communications
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3015:3015"
+    environment:
+      - NODE_ENV=production
+      - PORT=3015
+      - SERVICE_NAME=notification-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_notification_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+  # Monitoring & Health Checks
+  monitoring-service:
+    build: ./monitoring-service
+    ports:
+      - "3016:3016"
+    environment:
+      - NODE_ENV=production
+      - PORT=3016
+      - SERVICE_NAME=monitoring-service
+      - MONGO_URI=mongodb://mongo:27017/etelios_monitoring_service
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3015
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - etelios-network
+
+  # Database
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - etelios-network
+
+  # Redis Cache
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - etelios-network
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - etelios-network
+
+  # Service Discovery
+  consul:
+    image: consul:1.16
+    ports:
+      - "8500:8500"
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
+    networks:
+      - etelios-network
+
+volumes:
+  mongo_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  etelios-network:
+    driver: bridge
