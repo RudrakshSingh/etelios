@@ -10,4 +10,16 @@ const rbac = (requiredRole) => {
   };
 };
 
-module.exports = rbac;
+const requireRole = (role) => {
+  return (req, res, next) => {
+    // Mock role requirement - in production, this would check user roles
+    req.user = {
+      id: 'mock-user-id',
+      role: role,
+      permissions: ['read', 'write', 'delete']
+    };
+    next();
+  };
+};
+
+module.exports = { rbac, requireRole };
