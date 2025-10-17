@@ -1,0 +1,125 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: etelios-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+  - host: etelios.local
+    http:
+      paths:
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 3001
+      - path: /api/hr
+        pathType: Prefix
+        backend:
+          service:
+            name: hr-service
+            port:
+              number: 3002
+      - path: /api/attendance
+        pathType: Prefix
+        backend:
+          service:
+            name: attendance-service
+            port:
+              number: 3003
+      - path: /api/payroll
+        pathType: Prefix
+        backend:
+          service:
+            name: payroll-service
+            port:
+              number: 3004
+      - path: /api/crm
+        pathType: Prefix
+        backend:
+          service:
+            name: crm-service
+            port:
+              number: 3005
+      - path: /api/inventory
+        pathType: Prefix
+        backend:
+          service:
+            name: inventory-service
+            port:
+              number: 3006
+      - path: /api/sales
+        pathType: Prefix
+        backend:
+          service:
+            name: sales-service
+            port:
+              number: 3007
+      - path: /api/purchase
+        pathType: Prefix
+        backend:
+          service:
+            name: purchase-service
+            port:
+              number: 3008
+      - path: /api/financial
+        pathType: Prefix
+        backend:
+          service:
+            name: financial-service
+            port:
+              number: 3009
+      - path: /api/documents
+        pathType: Prefix
+        backend:
+          service:
+            name: document-service
+            port:
+              number: 3010
+      - path: /api/service-management
+        pathType: Prefix
+        backend:
+          service:
+            name: service-management
+            port:
+              number: 3011
+      - path: /api/cpp
+        pathType: Prefix
+        backend:
+          service:
+            name: cpp-service
+            port:
+              number: 3012
+      - path: /api/prescription
+        pathType: Prefix
+        backend:
+          service:
+            name: prescription-service
+            port:
+              number: 3013
+      - path: /api/analytics
+        pathType: Prefix
+        backend:
+          service:
+            name: analytics-service
+            port:
+              number: 3014
+      - path: /api/notification
+        pathType: Prefix
+        backend:
+          service:
+            name: notification-service
+            port:
+              number: 3015
+      - path: /api/monitoring
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-service
+            port:
+              number: 3016
