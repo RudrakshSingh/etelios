@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Careers routes
-router.get('/jobs', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all job openings',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock careers controller
+const careersController = {
+  getJobs: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Job listings retrieved successfully',
+      data: []
+    });
+  },
+  
+  createJob: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Job listing created successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/jobs/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get job by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/jobs', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new job posting',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/jobs/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update job posting',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/jobs/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Delete job posting',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), careersController.getJobs);
+router.post('/', authenticate, requireRole(['admin']), careersController.createJob);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
@@ -20,9 +20,10 @@ const logger = winston.createLogger({
 
 class StorageService {
   constructor() {
-    this.s3 = null;
-    this.bucket = process.env.AWS_S3_BUCKET || 'lenstrack-ecommerce';
-    this.region = process.env.AWS_REGION || 'us-east-1';
+    this.blobServiceClient = null;
+    this.containerName = process.env.AZURE_STORAGE_CONTAINER || 'lenstrack-ecommerce';
+    this.accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+    this.accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
     this.isInitialized = false;
   }
 
@@ -31,23 +32,26 @@ class StorageService {
    */
   async initialize() {
     try {
-      // Configure AWS
-      AWS.config.update({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        region: this.region
-      });
+      // Check if Azure credentials are available
+      if (!this.accountName || !this.accountKey) {
+        logger.warn('Azure Storage credentials not configured, using local storage fallback');
+        this.isInitialized = false;
+        return;
+      }
 
-      this.s3 = new AWS.S3({
-        apiVersion: '2006-03-01',
-        signatureVersion: 'v4'
-      });
+      // Configure Azure Blob Storage
+      const sharedKeyCredential = new StorageSharedKeyCredential(this.accountName, this.accountKey);
+      this.blobServiceClient = new BlobServiceClient(
+        `https://${this.accountName}.blob.core.windows.net`,
+        sharedKeyCredential
+      );
 
-      // Test connection
-      await this.s3.headBucket({ Bucket: this.bucket }).promise();
+      // Test connection by creating container if it doesn't exist
+      const containerClient = this.blobServiceClient.getContainerClient(this.containerName);
+      await containerClient.createIfNotExists();
 
       this.isInitialized = true;
-      logger.info('Storage service initialized successfully');
+      logger.info('Azure Storage service initialized successfully');
 
     } catch (error) {
       logger.error('Storage service initialization failed:', error);
@@ -56,36 +60,41 @@ class StorageService {
   }
 
   /**
-   * Upload file to S3
+   * Upload file to Azure Blob Storage
    */
   async uploadFile(file, key, options = {}) {
     try {
-      const uploadParams = {
-        Bucket: this.bucket,
-        Key: key,
-        Body: file.buffer || file,
-        ContentType: file.mimetype || options.contentType,
-        ACL: options.acl || 'private',
-        Metadata: options.metadata || {}
+      if (!this.isInitialized) {
+        throw new Error('Storage service not initialized');
+      }
+
+      const containerClient = this.blobServiceClient.getContainerClient(this.containerName);
+      const blockBlobClient = containerClient.getBlockBlobClient(key);
+
+      const uploadOptions = {
+        blobHTTPHeaders: {
+          blobContentType: file.mimetype || options.contentType
+        },
+        metadata: options.metadata || {}
       };
 
-      const result = await this.s3.upload(uploadParams).promise();
+      const result = await blockBlobClient.upload(file.buffer || file, file.size, uploadOptions);
 
-      logger.info('File uploaded to S3', {
+      logger.info('File uploaded to Azure Blob Storage', {
         key,
-        bucket: this.bucket,
+        container: this.containerName,
         size: file.size,
         contentType: file.mimetype
       });
 
       return {
-        url: result.Location,
-        key: result.Key,
-        bucket: this.bucket,
-        etag: result.ETag
+        url: blockBlobClient.url,
+        key: key,
+        container: this.containerName,
+        etag: result.etag
       };
     } catch (error) {
-      logger.error('Failed to upload file to S3:', error);
+      logger.error('Failed to upload file to Azure Blob Storage:', error);
       throw error;
     }
   }
@@ -102,7 +111,7 @@ class StorageService {
 
       const results = await Promise.all(uploadPromises);
 
-      logger.info('Multiple files uploaded to S3', {
+      logger.info('Multiple files uploaded to Azure Blob Storage', {
         count: files.length,
         keyPrefix
       });

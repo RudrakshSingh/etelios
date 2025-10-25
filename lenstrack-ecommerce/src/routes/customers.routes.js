@@ -1,59 +1,47 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Customers routes
-router.get('/customers', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all customers',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock customers controller
+const customersController = {
+  getCustomers: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Customers retrieved successfully',
+      data: []
+    });
+  },
+  
+  getCustomer: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Customer retrieved successfully',
+      data: {}
+    });
+  },
+  
+  createCustomer: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Customer created successfully',
+      data: {}
+    });
+  },
+  
+  updateCustomer: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Customer updated successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/customers/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get customer by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/customers', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new customer',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/customers/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update customer',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/customers/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Delete customer',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.get('/customers/:id/orders', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get customer orders',
-    data: { customerId: req.params.id, orders: [] },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), customersController.getCustomers);
+router.get('/:id', authenticate, requireRole(['admin', 'manager']), customersController.getCustomer);
+router.post('/', authenticate, requireRole(['admin', 'manager']), customersController.createCustomer);
+router.put('/:id', authenticate, requireRole(['admin']), customersController.updateCustomer);
 
 module.exports = router;

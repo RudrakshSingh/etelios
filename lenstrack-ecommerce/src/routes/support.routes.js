@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Support routes
-router.get('/tickets', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all support tickets',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock support controller
+const supportController = {
+  getTickets: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Support tickets retrieved successfully',
+      data: []
+    });
+  },
+  
+  createTicket: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Support ticket created successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/tickets/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get ticket by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/tickets', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new support ticket',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/tickets/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update ticket',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/tickets/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Close ticket',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), supportController.getTickets);
+router.post('/', authenticate, requireRole(['admin', 'manager']), supportController.createTicket);
 
 module.exports = router;

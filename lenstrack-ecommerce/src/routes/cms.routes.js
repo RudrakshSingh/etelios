@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// CMS routes
-router.get('/pages', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all pages',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock CMS controller
+const cmsController = {
+  getPages: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Pages retrieved successfully',
+      data: []
+    });
+  },
+  
+  createPage: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Page created successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/pages/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get page by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/pages', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new page',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/pages/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update page',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/pages/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Delete page',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), cmsController.getPages);
+router.post('/', authenticate, requireRole(['admin']), cmsController.createPage);
 
 module.exports = router;

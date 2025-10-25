@@ -1,59 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Inventory routes
-router.get('/stock', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all stock',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock inventory controller
+const inventoryController = {
+  getInventory: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Inventory retrieved successfully',
+      data: []
+    });
+  },
+  
+  updateStock: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Stock updated successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/stock/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get stock by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/stock', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new stock entry',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/stock/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update stock',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/stock/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Delete stock entry',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.get('/movements', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get stock movements',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), inventoryController.getInventory);
+router.put('/:id/stock', authenticate, requireRole(['admin', 'manager']), inventoryController.updateStock);
 
 module.exports = router;

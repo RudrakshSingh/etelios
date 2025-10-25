@@ -1,27 +1,47 @@
 const mongoose = require('mongoose');
 
 const roleSchema = new mongoose.Schema({
-  name: {
-    type: String,
+  name: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    trim: true 
+  },
+  permissions: [{ 
+    type: String, 
+    trim: true 
+  }],
+  description: { 
+    type: String, 
+    trim: true 
+  },
+  level: {
+    type: Number,
     required: true,
-    unique: true,
+    min: 1,
+    max: 10
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  department: {
+    type: String,
     trim: true
   },
-  description: {
+  accessLevel: {
     type: String,
-    required: true
-  },
-  permissions: [{
-    type: String,
-    required: true
-  }],
-  status: {
-    type: String,
-    enum: ['active', 'inactive'],
-    default: 'active'
+    enum: ['read', 'write', 'admin', 'super_admin'],
+    default: 'read'
   }
-}, {
-  timestamps: true
+}, { 
+  timestamps: true 
 });
+
+// Indexes for better query performance
+roleSchema.index({ name: 1 });
+roleSchema.index({ level: 1 });
+roleSchema.index({ isActive: 1 });
+roleSchema.index({ department: 1 });
 
 module.exports = mongoose.model('Role', roleSchema);

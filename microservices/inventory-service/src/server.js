@@ -57,10 +57,17 @@ const loadRoutes = () => {
   }
   try {
     const assetRegisterRoutes = require('./routes/assetRegister.routes.js');
-    app.use('/api/asset-register', apiRateLimit, asset-registerRoutes);
+    app.use('/api/asset-register', apiRateLimit, assetRegisterRoutes);
     console.log('✅ assetRegister.routes.js loaded with COMPLETE logic');
   } catch (error) {
     console.log('❌ assetRegister.routes.js failed:', error.message);
+  }
+  try {
+    const productMasterRoutes = require('./routes/productMaster.routes.js');
+    app.use('/api/inventory/products', apiRateLimit, productMasterRoutes);
+    console.log('✅ productMaster.routes.js loaded with COMPLETE logic');
+  } catch (error) {
+    console.log('❌ productMaster.routes.js failed:', error.message);
   }
 
   console.log('✅ inventory-service routes loaded with COMPLETE logic');

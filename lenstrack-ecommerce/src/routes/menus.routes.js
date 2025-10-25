@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Menus routes
-router.get('/menus', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all menus',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock menus controller
+const menusController = {
+  getMenus: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Menus retrieved successfully',
+      data: []
+    });
+  },
+  
+  createMenu: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Menu created successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/menus/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get menu by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/menus', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new menu',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/menus/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update menu',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/menus/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Delete menu',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), menusController.getMenus);
+router.post('/', authenticate, requireRole(['admin']), menusController.createMenu);
 
 module.exports = router;

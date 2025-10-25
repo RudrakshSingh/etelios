@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Pricing routes
-router.get('/prices', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all prices',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock pricing controller
+const pricingController = {
+  getPricing: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Pricing retrieved successfully',
+      data: []
+    });
+  },
+  
+  updatePricing: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Pricing updated successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/prices/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get price by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/prices', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Create new price',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.put('/prices/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Update price',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.delete('/prices/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Delete price',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), pricingController.getPricing);
+router.put('/:id', authenticate, requireRole(['admin']), pricingController.updatePricing);
 
 module.exports = router;

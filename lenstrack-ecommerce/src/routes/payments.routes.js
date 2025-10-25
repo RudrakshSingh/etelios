@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/auth.middleware');
+const { requireRole } = require('../middleware/rbac.middleware');
 
-// Payments routes
-router.get('/payments', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get all payments',
-    data: [],
-    timestamp: new Date().toISOString()
-  });
-});
+// Mock payments controller
+const paymentsController = {
+  getPayments: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Payments retrieved successfully',
+      data: []
+    });
+  },
+  
+  processPayment: (req, res) => {
+    res.json({
+      success: true,
+      message: 'Payment processed successfully',
+      data: {}
+    });
+  }
+};
 
-router.get('/payments/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get payment by ID',
-    data: { id: req.params.id },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/payments', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Process payment',
-    data: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.post('/payments/:id/refund', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Process refund',
-    data: { id: req.params.id, ...req.body },
-    timestamp: new Date().toISOString()
-  });
-});
-
-router.get('/payments/:id/status', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get payment status',
-    data: { id: req.params.id, status: 'completed' },
-    timestamp: new Date().toISOString()
-  });
-});
+// Routes
+router.get('/', authenticate, requireRole(['admin', 'manager']), paymentsController.getPayments);
+router.post('/process', authenticate, requireRole(['admin', 'manager']), paymentsController.processPayment);
 
 module.exports = router;

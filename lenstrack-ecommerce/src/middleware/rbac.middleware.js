@@ -5,9 +5,8 @@
 /**
  * Check if user has required role
  * @param {Array} allowedRoles - Array of allowed roles
- * @param {Array} allowedPermissions - Array of allowed permissions
  */
-const requireRole = (allowedRoles = [], allowedPermissions = []) => {
+const requireRole = (allowedRoles = []) => {
   return (req, res, next) => {
     try {
       // Mock RBAC middleware - in production, this would check user roles
@@ -23,20 +22,6 @@ const requireRole = (allowedRoles = [], allowedPermissions = []) => {
           success: false,
           message: 'Access denied. Insufficient role privileges.'
         });
-      }
-
-      // Check permissions
-      if (allowedPermissions.length > 0) {
-        const hasPermission = allowedPermissions.some(permission => 
-          user.permissions.includes(permission)
-        );
-        
-        if (!hasPermission) {
-          return res.status(403).json({
-            success: false,
-            message: 'Access denied. Insufficient permissions.'
-          });
-        }
       }
 
       next();
