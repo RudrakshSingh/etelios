@@ -27,7 +27,13 @@
     "test:production": "node test-production-apis.js",
     "test:all-production": "node test-all-apis-production.js",
     "test:asset-register": "node test-asset-register.js",
-    "production:test": "npm run setup:real-users && npm run test:all-production"
+    "production:test": "npm run setup:real-users && npm run test:all-production",
+    "multitenant:start": "node start-multitenant-services.js",
+    "multitenant:test": "node test-multitenant-apis.js",
+    "multitenant:create-tenant": "curl -X POST http://localhost:3020/api/tenants -H 'Content-Type: application/json' -d '{\"tenantName\":\"Test Company\",\"domain\":\"test.etelios.com\",\"subdomain\":\"test\",\"plan\":\"professional\"}'",
+    "multitenant:health": "curl http://localhost:3020/health && curl http://localhost:3021/health",
+    "multitenant:install": "cd microservices/tenant-registry-service && npm install && cd ../realtime-service && npm install",
+    "multitenant:build": "npm run multitenant:install && npm run multitenant:start"
   },
   "keywords": [
     "hrms",

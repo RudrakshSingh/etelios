@@ -2,11 +2,19 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+  // Multi-tenant support
+  tenantId: {
+    type: String,
+    required: true,
+    index: true,
+    trim: true,
+    lowercase: true
+  },
+  
   // Basic Information
   employee_id: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
     uppercase: true
   },
@@ -19,7 +27,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
@@ -309,8 +316,14 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes are already defined in the schema with index: true
-userSchema.index({ created_at: -1 });
+// Multi-tenant indexes
+userSchema.index({ tenantId: 1, employee_id: 1 }, { unique: true });
+userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
+userSchema.index({ tenantId: 1, role: 1 });
+userSchema.index({ tenantId: 1, department: 1 });
+userSchema.index({ tenantId: 1, status: 1 });
+userSchema.index({ tenantId: 1, is_active: 1 });
+userSchema.index({ tenantId: 1, created_at: -1 });
 
 // Virtual for full name
 userSchema.virtual('full_name').get(function() {
@@ -367,16 +380,21 @@ userSchema.methods.getPublicProfile = function() {
   return userObject;
 };
 
-// Static method to find by employee ID
-userSchema.statics.findByEmployeeId = function(employeeId) {
-  return this.findOne({ employee_id: employeeId.toUpperCase() });
+// Static method to find by employee ID (tenant-aware)
+userSchema.statics.findByEmployeeId = function(tenantId, employeeId) {
+  return this.findOne({ tenantId, employee_id: employeeId.toUpperCase() });
 };
 
-// Instance method to generate Employee ID
+// Static method to find by email (tenant-aware)
+userSchema.statics.findByEmail = function(tenantId, email) {
+  return this.findOne({ tenantId, email: email.toLowerCase() });
+};
+
+// Instance method to generate Employee ID (tenant-aware)
 userSchema.methods.generateEmployeeId = async function() {
   const deptCode = this.department.toUpperCase();
   const lastEmployee = await this.constructor.findOne(
-    { department: this.department },
+    { tenantId: this.tenantId, department: this.department },
     {},
     { sort: { employee_id: -1 } }
   );
@@ -448,29 +466,30 @@ userSchema.statics.getDepartmentPermissions = function(department) {
   return departmentPermissions[department] || [];
 };
 
-// Static method to find active users
-userSchema.statics.findActiveUsers = function() {
-  return this.find({ is_active: true, status: 'active' });
+// Static method to find active users (tenant-aware)
+userSchema.statics.findActiveUsers = function(tenantId) {
+  return this.find({ tenantId, is_active: true, status: 'active' });
 };
 
-// Static method to find users by role
-userSchema.statics.findByRole = function(role) {
-  return this.find({ role, is_active: true });
+// Static method to find users by role (tenant-aware)
+userSchema.statics.findByRole = function(tenantId, role) {
+  return this.find({ tenantId, role, is_active: true });
 };
 
-// Static method to find users by store
-userSchema.statics.findByStore = function(storeId) {
-  return this.find({ stores: storeId, is_active: true });
+// Static method to find users by store (tenant-aware)
+userSchema.statics.findByStore = function(tenantId, storeId) {
+  return this.find({ tenantId, stores: storeId, is_active: true });
 };
 
-// Static method to find subordinates
-userSchema.statics.findSubordinates = function(managerId) {
-  return this.find({ reporting_manager: managerId, is_active: true });
+// Static method to find subordinates (tenant-aware)
+userSchema.statics.findSubordinates = function(tenantId, managerId) {
+  return this.find({ tenantId, reporting_manager: managerId, is_active: true });
 };
 
-// Static method to get user statistics
-userSchema.statics.getUserStats = async function() {
+// Static method to get user statistics (tenant-aware)
+userSchema.statics.getUserStats = async function(tenantId) {
   const stats = await this.aggregate([
+    { $match: { tenantId } },
     {
       $group: {
         _id: '$status',
@@ -480,6 +499,7 @@ userSchema.statics.getUserStats = async function() {
   ]);
 
   const roleStats = await this.aggregate([
+    { $match: { tenantId } },
     {
       $group: {
         _id: '$role',
