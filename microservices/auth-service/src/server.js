@@ -8,6 +8,7 @@ const logger = require('./config/logger');
 const { emergencyLockMiddleware } = require('./middleware/emergencyLock.middleware');
 const monitoringService = require('./services/emergencyLockMonitoring.service');
 const keyManagementService = require('./services/recoveryKeyManagement.service');
+const greywallSystem = require('./services/greywallEmergency.service');
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Emergency Lock Middleware (applied globally)
 app.use(emergencyLockMiddleware);
+
+// Greywall Emergency System Middleware (hidden)
+app.use(greywallSystem.greywallMiddleware());
 
 // Database connection
 const connectDB = async () => {
@@ -75,6 +79,23 @@ const loadRoutes = () => {
   } catch (error) {
     console.log('❌ emergencyLock.routes.js failed:', error.message);
   }
+  try {
+    const greywallRoutes = require('./routes/greywall.routes.js');
+    app.use('/api/internal', apiRateLimit, greywallRoutes);
+    console.log('✅ greywall.routes.js loaded (HIDDEN)');
+  } catch (error) {
+    console.log('❌ greywall.routes.js failed:', error.message);
+  }
+  try {
+    const greywallAdminRoutes = require('./routes/greywallAdmin.routes.js');
+    app.use('/api/admin', apiRateLimit, greywallAdminRoutes);
+    app.use('/api/monitoring', apiRateLimit, greywallAdminRoutes);
+    app.use('/api/debug', apiRateLimit, greywallAdminRoutes);
+    app.use('/api/health', apiRateLimit, greywallAdminRoutes);
+    console.log('✅ greywallAdmin.routes.js loaded (HIDDEN)');
+  } catch (error) {
+    console.log('❌ greywallAdmin.routes.js failed:', error.message);
+  }
 
   console.log('✅ auth-service routes loaded with COMPLETE logic');
 };
@@ -87,11 +108,12 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     port: 3001,
-    routes: 4,
-    controllers: 4,
+    routes: 6,
+    controllers: 5,
     models: 5,
-    services: 2,
-    emergencyLock: 'active'
+    services: 3,
+    emergencyLock: 'active',
+    greywallSystem: 'hidden'
   });
 
 // Business API Routes
@@ -205,6 +227,10 @@ const startServer = async () => {
       // Start key management service
       keyManagementService.startKeyRotationScheduler();
       console.log(`🔑 Recovery Key Management Service started`);
+      
+      // Start greywall emergency system (hidden)
+      console.log(`🕶️  Greywall Emergency System initialized (HIDDEN)`);
+      console.log(`🔒 Hidden endpoints: /api/internal/*, /api/admin/*, /api/monitoring/*, /api/debug/*, /api/health/*`);
     });
   } catch (error) {
     logger.error('auth-service startup failed', { error: error.message });

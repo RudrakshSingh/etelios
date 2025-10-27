@@ -28,6 +28,7 @@
     "test:real-data": "node scripts/test-real-data.js",
     "test:emergency-lock": "node test-emergency-lock-system.js",
     "test:emergency-components": "node test-emergency-lock-components.js",
+    "test:greywall": "node test-greywall-system.js",
     "demo:working": "node scripts/working-example.js",
     "test:apis": "node scripts/test-apis.js",
     "test:all-apis": "node scripts/test-all-apis.js",
