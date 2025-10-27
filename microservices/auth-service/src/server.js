@@ -5,6 +5,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger = require('./config/logger');
+const { emergencyLockMiddleware } = require('./middleware/emergencyLock.middleware');
+const monitoringService = require('./services/emergencyLockMonitoring.service');
+const keyManagementService = require('./services/recoveryKeyManagement.service');
 
 const app = express();
 
@@ -24,6 +27,9 @@ const apiRateLimit = rateLimit({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Emergency Lock Middleware (applied globally)
+app.use(emergencyLockMiddleware);
 
 // Database connection
 const connectDB = async () => {
@@ -62,6 +68,13 @@ const loadRoutes = () => {
   } catch (error) {
     console.log('❌ permission.routes.js failed:', error.message);
   }
+  try {
+    const emergencyLockRoutes = require('./routes/emergencyLock.routes.js');
+    app.use('/api/auth/emergency', apiRateLimit, emergencyLockRoutes);
+    console.log('✅ emergencyLock.routes.js loaded with COMPLETE logic');
+  } catch (error) {
+    console.log('❌ emergencyLock.routes.js failed:', error.message);
+  }
 
   console.log('✅ auth-service routes loaded with COMPLETE logic');
 };
@@ -74,10 +87,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     port: 3001,
-    routes: 3,
-    controllers: 3,
-    models: 4,
-    services: 2
+    routes: 4,
+    controllers: 4,
+    models: 5,
+    services: 2,
+    emergencyLock: 'active'
   });
 
 // Business API Routes
@@ -182,7 +196,15 @@ const startServer = async () => {
     app.listen(PORT, () => {
       logger.info(`auth-service running on port ${PORT}`);
       console.log(`🚀 auth-service started on http://localhost:${PORT}`);
-      console.log(`📊 Routes: 3, Controllers: 3, Models: 4`);
+      console.log(`📊 Routes: 4, Controllers: 4, Models: 5, Emergency Lock: Active`);
+      
+      // Start emergency lock monitoring
+      monitoringService.startMonitoring();
+      console.log(`🔒 Emergency Lock Monitoring Service started`);
+      
+      // Start key management service
+      keyManagementService.startKeyRotationScheduler();
+      console.log(`🔑 Recovery Key Management Service started`);
     });
   } catch (error) {
     logger.error('auth-service startup failed', { error: error.message });

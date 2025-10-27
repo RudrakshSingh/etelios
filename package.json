@@ -26,6 +26,8 @@
     "setup:minimal": "node scripts/setup-minimal.js",
     "setup:test-users": "node scripts/setup-test-users.js",
     "test:real-data": "node scripts/test-real-data.js",
+    "test:emergency-lock": "node test-emergency-lock-system.js",
+    "test:emergency-components": "node test-emergency-lock-components.js",
     "demo:working": "node scripts/working-example.js",
     "test:apis": "node scripts/test-apis.js",
     "test:all-apis": "node scripts/test-all-apis.js",
