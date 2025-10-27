@@ -111,7 +111,7 @@ app.use('/api/hr', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   logger.error('Unhandled error:', err);
   res.status(500).json({
     error: 'Internal Server Error',

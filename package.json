@@ -4,6 +4,9 @@
   "description": "Etelios HRMS Backend API - Production-grade HRMS for retail and field sales",
   "main": "src/server.js",
   "scripts": {
+    "build": "npm run lint:fix && echo 'Build completed - Node.js application ready'",
+    "build:prod": "npm run lint:fix && npm run test:health && echo 'Production build completed'",
+    "test:health": "jest tests/unit/health.test.js",
     "start": "node src/server.js",
     "dev": "nodemon --watch src src/server.js",
     "test": "jest --runInBand --detectOpenHandles",

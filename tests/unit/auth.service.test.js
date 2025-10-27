@@ -1,7 +1,6 @@
 const AuthService = require('../../src/services/auth.service');
 const User = require('../../src/models/User.model');
 const Role = require('../../src/models/Role.model');
-const { comparePassword } = require('../../src/utils/hashUtils');
 
 describe('AuthService', () => {
   let testRole;
